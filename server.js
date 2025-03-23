@@ -1,28 +1,16 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
 import readline from 'readline';
-import say from 'say';
-import express from 'express';
-import multer from 'multer';
-import path from 'path';
 
 dotenv.config();
 
 const geminiApiKey = process.env.GEMINI_API_KEY;
-const app = express();
-const port = process.env.PORT || 3000;
-
-let chatHistory = [];
-
-// Multer setup for file uploads
-const storage = multer.diskStorage({
-    destination: './uploads/',
-    filename: function (req, file, cb) {
-        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
-    }
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
 });
 
-const upload = multer({ storage: storage });
+let chatHistory = [];
 
 const processTasks = async (taskInput) => {
     try {
@@ -37,20 +25,20 @@ const processTasks = async (taskInput) => {
                     parts: [{
                         text: `Chatbot Role:
                                 always answers in just 1-2 lines
-                                You are Echoseal, the AI assistant for the Echoseal app. Your primary function is to provide accurate and concise responses regarding Echoseal's features, AI detection capabilities, and user support.
+                            You are Echoseal, the AI assistant for the Echoseal app. Your primary function is to provide accurate and concise responses regarding Echoseal's features, AI detection capabilities, and user support.
 
-                                General FAQs:
-                                🔹 What is Echoseal? – Echoseal is an AI detection tool that identifies fake AI-generated content.
-                                🔹 How does Echoseal work? – It uses advanced AI algorithms and forensic techniques to analyze and verify authenticity.
-                                🔹 Is Echoseal free? – The basic detection feature is free, while advanced features may require a premium plan.
+                            General FAQs:
+                            🔹 What is Echoseal? – Echoseal is an AI detection tool that identifies fake AI-generated content.
+                            🔹 How does Echoseal work? – It uses advanced AI algorithms and forensic techniques to analyze and verify authenticity.
+                            🔹 Is Echoseal free? – The basic detection feature is free, while advanced features may require a premium plan.
 
-                                Response Guidelines:
-                                ✅ Keep responses short and precise.
-                                ✅ Adapt to the user’s language.
-                                ✅ Maintain a friendly and engaging tone as a female chatbot.
+                            Response Guidelines:
+                            ✅ Keep responses short and precise.
+                            ✅ Adapt to the user’s language.
+                            ✅ Maintain a friendly and engaging tone as a female chatbot.
 
-                                Chat history:
-                                ${fullConversation}`
+                            Chat history:
+                            ${fullConversation}`
                     }]
                 }],
                 model: "models/gemini-1.5-pro"
@@ -71,73 +59,27 @@ const processTasks = async (taskInput) => {
     }
 };
 
-// ✅ Offline Speech Synthesis using "say"
-const speak = async (text) => {
-    return new Promise((resolve, reject) => {
-        say.speak(text, 'Microsoft Zira Desktop', 1.0, (err) => {
-            if (err) {
-                console.error("⚠ ERROR IN OFFLINE SPEECH SYNTHESIS:", err);
-                reject(err);
-            } else {
-                resolve();
-            }
-        });
+const askTask = () => {
+    rl.question("YOU: ", async (taskInput) => {
+        if (taskInput.toLowerCase() === "exit") {
+            console.log("\n👋 Bye! Conversation Ended.");
+            rl.close();
+            return;
+        }
+
+        try {
+            const response = await processTasks(taskInput);
+            console.log(`Echoseal: ${response}\n`);
+
+            // Chat history store karna
+            chatHistory.push(`YOU: ${taskInput}`);
+            chatHistory.push(`Echoseal: ${response}`);
+        } catch (error) {
+            console.error("⚠ UNEXPECTED ERROR OCCURRED:", error);
+        }
+
+        askTask();
     });
 };
 
-// Express route to handle text input
-app.use(express.json());
-
-app.post('/chat', async (req, res) => {
-    const taskInput = req.body.message;
-
-    if (!taskInput) {
-        return res.status(400).send({ error: "Message is required" });
-    }
-
-    try {
-        const response = await processTasks(taskInput);
-
-        // Speak the response (optional, can be disabled for web)
-        await speak(response);
-
-        // Chat history store karna
-        chatHistory.push(`YOU: ${taskInput}`);
-        chatHistory.push(`Echoseal: ${response}`);
-
-        res.send({ response: response });
-    } catch (error) {
-        console.error("⚠ UNEXPECTED ERROR OCCURRED:", error);
-        res.status(500).send({ error: "Internal Server Error" });
-    }
-});
-
-// Express route to handle file uploads
-app.post('/upload', upload.single('file'), async (req, res) => {
-    if (!req.file) {
-        return res.status(400).send({ error: "No file uploaded" });
-    }
-
-    const filePath = req.file.path;
-    const taskInput = `Analyze the file located at: ${filePath} for AI generated content. Tell me your analysis.`;
-
-    try {
-        const response = await processTasks(taskInput);
-
-        // Speak the response (optional)
-        await speak(response);
-
-        // Chat history store karna
-        chatHistory.push(`YOU: File Uploaded: ${req.file.originalname}`);
-        chatHistory.push(`Echoseal: ${response}`);
-
-        res.send({ response: response });
-    } catch (error) {
-        console.error("⚠ UNEXPECTED ERROR OCCURRED:", error);
-        res.status(500).send({ error: "Internal Server Error" });
-    }
-});
-
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-});
+askTask();
