@@ -15,7 +15,7 @@ let chatHistory = [];
 
 const processTasks = async (taskInput) => {
     try {
-        const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent`;
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent`;
         
         const fullConversation = chatHistory.join("\n") + `\nYOU: ${taskInput}\nECHOSEAL: `;
 
