@@ -7,7 +7,7 @@ dotenv.config();
 const app = express();
 app.use(express.json()); // To parse JSON request bodies
 
-const geminiApiKey = process.env.GEMINI_API_KEY;
+const geminiApiKey ='AIzaSyBcVtv-DZT4vXvldt68kTIPgLKRN0HRxjQ';
 
 let chatHistories = {}; // Store chat histories per user/session
 
