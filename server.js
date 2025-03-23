@@ -1,22 +1,22 @@
-import express from "express";
-import axios from "axios";
-import dotenv from "dotenv";
-import bodyParser from "body-parser";
+import axios from 'axios';
+import dotenv from 'dotenv';
+import readline from 'readline';
+import say from 'say';
 
 dotenv.config();
 
-const app = express();
-const PORT = process.env.PORT || 3000;
 const geminiApiKey = process.env.GEMINI_API_KEY;
-
-app.use(bodyParser.json());
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
 
 let chatHistory = [];
 
 const processTasks = async (taskInput) => {
     try {
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent`;
-        
+        const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent`;
+
         const fullConversation = chatHistory.join("\n") + `\nYOU: ${taskInput}\nECHOSEAL: `;
 
         const response = await axios.post(
@@ -56,25 +56,48 @@ ${fullConversation}`
         return responseContent ? responseContent.trim() : "⚠ No valid response.";
     } catch (error) {
         console.error("⚠ ERROR IN API CALL:", error.response?.data || error.message || error);
-        return "⚠ Error fetching response.";
+        throw error;
     }
 };
 
-// API Endpoint for chatbot
-app.post("/chat", async (req, res) => {
-    const { message } = req.body;
-    if (!message) return res.status(400).json({ error: "Message is required" });
+// ✅ Offline Speech Synthesis using "say"
+const speak = async (text) => {
+    return new Promise((resolve, reject) => {
+        say.speak(text, 'Microsoft Zira Desktop', 1.0, (err) => {
+            if (err) {
+                console.error("⚠ ERROR IN OFFLINE SPEECH SYNTHESIS:", err);
+                reject(err);
+            } else {
+                resolve();
+            }
+        });
+    });
+};
 
-    try {
-        const response = await processTasks(message);
-        chatHistory.push(`YOU: ${message}`);
-        chatHistory.push(`Echoseal: ${response}`);
-        res.json({ response });
-    } catch (error) {
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-});
+const askTask = () => {
+    rl.question("YOU: ", async (taskInput) => {
+        if (taskInput.toLowerCase() === "exit") {
+            console.log("\n👋 Bye! Conversation Ended.");
+            rl.close();
+            return;
+        }
 
-app.listen(PORT, () => {
-    console.log(`🚀 Server is running on port ${PORT}`);
-});
+        try {
+            const response = await processTasks(taskInput);
+            console.log(`Echoseal: ${response}\n`);
+
+            // Speak the response
+            await speak(response);
+
+            // Chat history store karna
+            chatHistory.push(`YOU: ${taskInput}`);
+            chatHistory.push(`Echoseal: ${response}`);
+        } catch (error) {
+            console.error("⚠ UNEXPECTED ERROR OCCURRED:", error);
+        }
+
+        askTask();
+    });
+};
+
+askTask();
