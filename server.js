@@ -1,21 +1,21 @@
-import axios from 'axios';
-import dotenv from 'dotenv';
-import readline from 'readline';
+const express = require('express');
+const axios = require('axios');
+const dotenv = require('dotenv');
 
 dotenv.config();
 
+const app = express();
+app.use(express.json()); // To parse JSON request bodies
+
 const geminiApiKey = process.env.GEMINI_API_KEY;
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
 
-let chatHistory = [];
+let chatHistories = {}; // Store chat histories per user/session
 
-const processTasks = async (taskInput) => {
+async function processTasks(taskInput, chatId) {
     try {
         const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent`;
 
+        const chatHistory = chatHistories[chatId] || [];
         const fullConversation = chatHistory.join("\n") + `\nYOU: ${taskInput}\nECHOSEAL: `;
 
         const response = await axios.post(
@@ -55,31 +55,36 @@ const processTasks = async (taskInput) => {
         return responseContent ? responseContent.trim() : "⚠ No valid response.";
     } catch (error) {
         console.error("⚠ ERROR IN API CALL:", error.response?.data || error.message || error);
-        throw error;
+        return "⚠ Unexpected error occurred.";
     }
-};
+}
 
-const askTask = () => {
-    rl.question("YOU: ", async (taskInput) => {
-        if (taskInput.toLowerCase() === "exit") {
-            console.log("\n👋 Bye! Conversation Ended.");
-            rl.close();
-            return;
+app.post('/chat', async (req, res) => {
+    const { chatId, message } = req.body;
+
+    if (!chatId || !message) {
+        return res.status(400).json({ error: "chatId and message are required." });
+    }
+
+    try {
+        const response = await processTasks(message, chatId);
+
+        if (!chatHistories[chatId]) {
+            chatHistories[chatId] = [];
         }
 
-        try {
-            const response = await processTasks(taskInput);
-            console.log(`Echoseal: ${response}\n`);
+        chatHistories[chatId].push(`YOU: ${message}`);
+        chatHistories[chatId].push(`ECHOSEAL: ${response}`);
 
-            // Chat history store karna
-            chatHistory.push(`YOU: ${taskInput}`);
-            chatHistory.push(`Echoseal: ${response}`);
-        } catch (error) {
-            console.error("⚠ UNEXPECTED ERROR OCCURRED:", error);
-        }
+        res.json({ response: response });
 
-        askTask();
-    });
-};
+    } catch (error) {
+        console.error("Error processing request:", error);
+        res.status(500).json({ error: "Internal server error." });
+    }
+});
 
-askTask();
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
