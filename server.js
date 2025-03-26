@@ -4,7 +4,7 @@ import axios from 'axios';
 const app = express();
 app.use(express.json());
 
-const geminiApiKey = process.env.GEMINI_API_KEY; // Use Vercel environment variable
+const geminiApiKey = "AIzaSyBcVtv-DZT4vXvldt68kTIPgLKRN0HRxjQ"; // Use Vercel environment variable
 
 let chatHistories = {}; 
 
