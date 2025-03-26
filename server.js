@@ -1,15 +1,12 @@
-const express = require('express');
-const axios = require('axios');
-const dotenv = require('dotenv');
-
-dotenv.config();
+import express from 'express';
+import axios from 'axios';
 
 const app = express();
-app.use(express.json()); // To parse JSON request bodies
+app.use(express.json());
 
-const geminiApiKey ='AIzaSyBcVtv-DZT4vXvldt68kTIPgLKRN0HRxjQ';
+const geminiApiKey = process.env.GEMINI_API_KEY; // Use Vercel environment variable
 
-let chatHistories = {}; // Store chat histories per user/session
+let chatHistories = {}; 
 
 async function processTasks(taskInput, chatId) {
     try {
@@ -59,7 +56,7 @@ async function processTasks(taskInput, chatId) {
     }
 }
 
-app.post('/chat', async (req, res) => {
+app.post('/api/chat', async (req, res) => { // Change route to /api/chat for Vercel
     const { chatId, message } = req.body;
 
     if (!chatId || !message) {
@@ -84,7 +81,4 @@ app.post('/chat', async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+export default app;
