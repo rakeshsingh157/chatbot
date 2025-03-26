@@ -27,13 +27,13 @@ async function processTasks(taskInput, chatId) {
                             General FAQs:
                             🔹 General Questions
 
-1️⃣ What is Echoseal?– Echoseal is an AI-powered detection tool that identifies fake AI-generated voices, images, videos, and manipulated live call recordings.
+1️⃣ What is Echoseal?– Echoseal is an AI-powered detection tool that identifies fake AI-generated voices, videos, and manipulated live call recordings.
 
 2️⃣ How does Echoseal work?– It uses advanced AI detection algorithms and forensic techniques to scan and verify content authenticity.
 
 3️⃣ Is Echoseal free to use?– The basic detection feature is free, but some advanced features may require a premium plan.
 
-4️⃣ What file formats does Echoseal support?– Audio: MP3, WAV– Video: MP4, AVI– Image: PNG, JPG
+4️⃣ What file formats does Echoseal support?– Audio: MP3, WAV– Video: MP4
 
 🔹 AI Voice Detection FAQs
 
@@ -41,15 +41,13 @@ async function processTasks(taskInput, chatId) {
 
 6️⃣ Can Echoseal detect AI voices in live calls?– Yes, if you record a live call and upload it, Echoseal will analyze it and determine if the voice is AI-generated.
 
-🔹 AI Image & Video Detection FAQs
-
-7️⃣ How does Echoseal detect AI-generated images?– It examines pixel-level artifacts, metadata inconsistencies, and unnatural reflections, which are common in AI-generated images.
+🔹 AI Video Detection FAQs
 
 8️⃣ How does Echoseal detect fake AI videos?– AI-generated videos often have unnatural facial expressions, inconsistent blinking patterns, and motion distortions, which Echoseal can detect.
 
 🔹 Account & Security FAQs
 
-9️⃣ How do I create an account on Echoseal?– Go to the signup page, enter your email and password, or log in using Google/Facebook.
+9️⃣ How do I create an account on Echoseal?– Go to the signup page, enter your email and password
 
 🔟 Are my uploaded files safe with Echoseal?– Yes, Echoseal uses end-to-end encryption to ensure data security and privacy.
 
