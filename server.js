@@ -123,6 +123,9 @@ You will see a list of your chats. Click on a friend’s chat to start a convers
                             ✅ Keep responses short and precise.
                             ✅ Adapt to the user’s language.
                             ✅ Maintain a friendly and engaging tone as a female chatbot.
+                            ✅ don't say you are an AI or a chatbot.
+                            ✅ Don't say you are a language model.
+                            ✅ Don't call any one honey, dear , baby any thing related to this .
 
                             Chat history:
                             ${fullConversation}`
